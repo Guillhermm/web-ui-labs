@@ -1,0 +1,145 @@
+body {
+  font-family: monospace;
+  background: #111;
+  color: #0f0;
+  padding: 20px;
+}
+
+h1 {
+  font-size: 2rem;
+  text-align: center;
+  margin: 1.75rem 0;
+}
+
+h2 {
+  font-size: 1.5rem;
+}
+
+#output {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  justify-content: center;
+}
+
+div[data-bits] {
+  width: 100%;
+}
+
+.controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  flex-direction: column;
+  cursor: pointer;
+}
+
+input[type="range"] {
+  width: 300px;
+}
+
+.prime-block {
+  background: #222;
+  border: 1px solid #0a0;
+  border-radius: 4px;
+  padding: 10px;
+  cursor: pointer;
+  text-align: center;
+  transition: all .3s ease-in-out;
+  animation: fadeInUp 0.3s ease forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.prime-block:hover {
+  transform: scale(1.02);
+}
+
+.prime-value {
+  font-size: 1.25rem;
+  margin-bottom: 5px;
+  color: #ccc;
+}
+
+.binary-group-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+.binary-group {
+  display: inline-block;
+  margin: 0 2px;
+}
+
+.bit {
+  display: inline-block;
+  width: 1.5rem;
+  height: 2.5rem;
+  font-size: 1.5rem;
+  line-height: 2.5rem;
+  text-align: center;
+  background: #333;
+  border-radius: 2px;
+  margin: 0 1px;
+  cursor: pointer;
+  transition: all 0.3s, transform 0.2s;
+}
+
+.bit:hover {
+  transform: translateY(-2px) scale(1.15);
+}
+
+.bit-1 {
+  background: #0c0;
+  color: #000;
+  font-weight: bold;
+}
+
+.bit-0 {
+  color: #888;
+}
+
+@media (min-width: 640px) {
+  div[data-bits] {
+    width: unset;
+  }
+
+  .binary-group-container {
+    flex-direction: row;
+  }
+
+  .controls {
+    flex-direction: row;
+  }
+}
+
+@media (min-width: 1024px) {
+  h1 {
+    font-size: 1.75rem;
+  }
+  
+  h2 {
+    font-size: 1rem;
+  }
+
+  .bit {
+    width: 1rem;
+    height: 1.25rem;
+    font-size: 1rem;
+    line-height: 1.25rem;
+  }
+}
