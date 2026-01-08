@@ -22,7 +22,7 @@ header h1 {
   font-size: 2.5rem;
   line-height: 1.1;
   margin-bottom: .5rem;
-  color: #0018f9;
+  color: #6200ee;
 }
 
 header p {
@@ -81,7 +81,7 @@ header p {
 .links a {
   text-decoration: none;
   color: #fff;
-  background: #0018f9;
+  background: #6200ee;
   padding: .5rem 1rem;
   border-radius: 6px;
   font-size: .9rem;
@@ -93,7 +93,7 @@ header p {
 }
 
 .links a:hover {
-  background: #000ab3;
+  background: #3700b3;
 }
 
 footer {
@@ -112,12 +112,12 @@ footer .social {
 
 footer .social a {
   text-decoration: none;
-  color: #0018f9;
+  color: #6200ee;
   transition: all .3s ease;
 }
 
 footer .social a:hover {
-  color: #2a2fff;
+  color: #3700b3;
 }
 
 @media (min-width: 768px) {
