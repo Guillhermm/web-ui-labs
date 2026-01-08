@@ -15,7 +15,7 @@ No frameworks. No build tools. No dependencies.
 
 - **Prime Binary Display**  
   A visual exploration of prime numbers represented in binary form.  
-  **Path:** `prime_binary_display/`
+  **Path:** `prime-binary-display/`
 
 ## Notes
 
