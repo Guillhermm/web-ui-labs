@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Chess, Paul Morphy's Opera Game, by Guilherme Zeni</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="script.js" defer></script>
+</head>
+
+<body>
+  <div class="container">
+    <!-- Player panels -->
+    <div class="player black">
+      <div class="player-img-container">
+        <img src="./images/duke-of-brunswick.jpeg" />
+      </div>
+      <div class="player-info-container">
+        <strong>Duke of Brunswick</strong>
+        <span>Black</span>
+      </div>
+    </div>
+
+    <div class="board-wrapper">
+      <div class="coordinates horizontal top"></div>
+      <div class="coordinates vertical left"></div>
+
+      <div class="chess-board" id="board">
+        <!-- Black pieces -->
+        <div id="black-rook-1" class="piece black">♜</div>
+        <div id="black-knight-1" class="piece black">♞</div>
+        <div id="black-bishop-1" class="piece black">♝</div>
+        <div id="black-queen" class="piece black">♛</div>
+        <div id="black-king" class="piece black">♚</div>
+        <div id="black-bishop-2" class="piece black">♝</div>
+        <div id="black-knight-2" class="piece black">♞</div>
+        <div id="black-rook-2" class="piece black">♜</div>
+        <div id="black-pawn-1" class="piece black">♟</div>
+        <div id="black-pawn-2" class="piece black">♟</div>
+        <div id="black-pawn-3" class="piece black">♟</div>
+        <div id="black-pawn-4" class="piece black">♟</div>
+        <div id="black-pawn-5" class="piece black">♟</div>
+        <div id="black-pawn-6" class="piece black">♟</div>
+        <div id="black-pawn-7" class="piece black">♟</div>
+        <div id="black-pawn-8" class="piece black">♟</div>
+
+        <!-- White pieces -->
+        <div id="white-pawn-1" class="piece white">♟</div>
+        <div id="white-pawn-2" class="piece white">♟</div>
+        <div id="white-pawn-3" class="piece white">♟</div>
+        <div id="white-pawn-4" class="piece white">♟</div>
+        <div id="white-pawn-5" class="piece white">♟</div>
+        <div id="white-pawn-6" class="piece white">♟</div>
+        <div id="white-pawn-7" class="piece white">♟</div>
+        <div id="white-pawn-8" class="piece white">♟</div>
+        <div id="white-rook-1" class="piece white">♜</div>
+        <div id="white-knight-1" class="piece white">♞</div>
+        <div id="white-bishop-1" class="piece white">♝</div>
+        <div id="white-queen" class="piece white">♛</div>
+        <div id="white-king" class="piece white">♚</div>
+        <div id="white-bishop-2" class="piece white">♝</div>
+        <div id="white-knight-2" class="piece white">♞</div>
+        <div id="white-rook-2" class="piece white">♜</div>
+      </div>
+
+      <div class="coordinates vertical right"></div>
+      <div class="coordinates horizontal bottom"></div>
+    </div>
+
+    <div class="player white">
+      <div class="player-img-container">
+        <img src="./images/paul-morphy.jpeg" />
+      </div>
+      <div class="player-info-container">
+        <strong>Paul Morphy</strong>
+        <span>White</span>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
