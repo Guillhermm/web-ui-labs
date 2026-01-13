@@ -6,6 +6,8 @@ The project focuses on DOM manipulation, piece animation, and visual storytellin
 
 **Live demo:** https://codepen.io/guillhermm/pen/dPXOoBq
 
+![Chess Opera Game Animation preview](preview.png)
+
 ## Behavior
 
 - The chessboard grid is generated dynamically using JavaScript.
