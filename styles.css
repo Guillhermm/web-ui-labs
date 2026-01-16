@@ -44,6 +44,8 @@ main {
 .card {
   background: #303030;
   border-radius: 12px;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   box-shadow: 0 5px 15px rgba(0, 0, 0, .5);
   transition: transform .3s, box-shadow 0.3s;
@@ -68,6 +70,7 @@ main {
 }
 
 .card p {
+  flex-grow: 1;
   font-size: .95rem;
   color: #aaa;
   margin: 0 1rem 1rem 1rem;
@@ -138,6 +141,13 @@ footer .social a:hover {
 @media (min-width: 1024px) {
   .container {
     max-width: 960px;
+    margin: 0 auto;
+  }
+}
+
+@media (min-width: 1440px) {
+  .container {
+    max-width: 1280px;
     margin: 0 auto;
   }
 }
