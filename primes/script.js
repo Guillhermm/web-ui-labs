@@ -210,11 +210,26 @@ const createTile = (value, index) => {
   tile.textContent = value;
   tile.dataset.value = value;
 
+  // Tier color logic
   const tier = getTierFromPrime(value);
   tile.classList.add(`tile--tier-${tier}`);
 
+  // Animation classes
   if (mergedIndexes.has(index)) tile.classList.add("tile--merge");
   if (index === spawnedIndex) tile.classList.add("tile--spawn");
+
+  // Dynamic font scaling
+  const length = value.toString().length;
+  const maxFont = 2;   // rem for 1–2 chars
+  const minFont = 1;   // rem minimum font
+  const maxChars = 5;  // after this, font stays at minFont
+
+  const calculatedFont = Math.max(
+    minFont,
+    maxFont - ((length - 2) * (maxFont - minFont) / (maxChars - 2))
+  );
+
+  tile.style.fontSize = `${calculatedFont}rem`;
 
   return tile;
 };
