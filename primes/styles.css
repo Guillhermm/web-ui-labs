@@ -264,7 +264,9 @@ main {
   }
 }
 
-.game-over {
+/* Generic modal */
+
+.modal {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.6);
@@ -274,26 +276,12 @@ main {
   z-index: 100;
 }
 
-.game-over.hidden {
-  display: none;
-}
-
-.game-over-card {
-  background: var(--color-bg-secondary);
+.modal-card {
+  background: rgba(48, 48, 48, .75);
+  color: var(--text-primary);
   padding: 1.5rem;
   border-radius: 0.75rem;
-  width: 90%;
-  max-width: 320px;
-  text-align: center;
   animation: popIn 200ms ease-out;
-}
-
-.game-over-card h2 {
-  margin-bottom: 1rem;
-}
-
-.game-over-card p {
-  margin-bottom: 0.5rem;
 }
 
 @keyframes popIn {
@@ -305,6 +293,26 @@ main {
     transform: scale(1);
     opacity: 1;
   }
+}
+
+/* Game Over modal */
+
+.game-over.hidden {
+  display: none;
+}
+
+.game-over-card {
+  width: 90%;
+  max-width: 320px;
+  text-align: center;
+}
+
+.game-over-card h2 {
+  margin-bottom: 1rem;
+}
+
+.game-over-card p {
+  margin-bottom: 0.5rem;
 }
 
 /* Stats bar */
@@ -352,12 +360,6 @@ main {
 /* Rules modal */
 
 .rules-modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   z-index: 200;
 }
 
@@ -366,10 +368,6 @@ main {
 }
 
 .rules-card {
-  background: rgba(48, 48, 48, .75);
-  color: var(--text-primary);
-  padding: 1.5rem;
-  border-radius: 0.75rem;
   max-width: 360px;
 }
 
@@ -383,6 +381,7 @@ main {
 
 
 /* Rules pagination */
+
 .rules-page {
   display: none;
 }
