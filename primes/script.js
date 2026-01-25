@@ -367,6 +367,14 @@ boardElement.addEventListener("touchend", e => {
  * Lifecycle
  */
 
+const animateNewButton = () => {
+  newGameBtn.classList.add("animate");
+
+  setTimeout(() => {
+    newGameBtn.classList.remove("animate");
+  }, [1000]);
+}
+
 const startGame = () => {
   board.fill(null);
   moves = 0;
@@ -381,6 +389,7 @@ const startGame = () => {
   renderBoard();
 };
 
+newGameBtn.addEventListener("click", animateNewButton);
 newGameBtn.addEventListener("click", startGame);
 restartBtn.addEventListener("click", startGame);
 
