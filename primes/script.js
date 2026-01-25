@@ -55,12 +55,53 @@ const closeRulesBtn = document.querySelector("[data-close-rules]");
 
 const hudMedalEl = document.querySelector(".hud-medal");
 
+let bestScore = 0;
+let bestPrime = 0;
+
 /**
  * Persistent stats
  */
 
-let bestScore = Number(localStorage.getItem("bestScore") || 0);
-let bestPrime = Number(localStorage.getItem("bestPrime") || 0);
+const loadGameState = () => {
+  const saved = localStorage.getItem("primeGameState");
+  if (!saved) return false;
+
+  try {
+    const state = JSON.parse(saved);
+    if (!state.board || !Array.isArray(state.board)) return false;
+
+    board = state.board;
+    moves = state.moves || 0;
+    score = state.score || 0;
+
+    // Restore primes in case new ones were generated
+    if (state.PRIMES && Array.isArray(state.PRIMES)) {
+      PRIMES.length = 0;
+      PRIMES.push(...state.PRIMES);
+    }
+
+    bestScore = state.bestScore || 0;
+    bestPrime = state.bestPrime || 0;
+
+    renderBoard();
+    updateMedal();
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const saveGameState = () => {
+  const state = {
+    board,
+    moves,
+    score,
+    PRIMES,
+    bestScore,
+    bestPrime
+  };
+  localStorage.setItem("primeGameState", JSON.stringify(state));
+};
 
 /**
  * Game state
@@ -370,13 +411,13 @@ const move = async direction => {
     bestScore = Math.max(bestScore, score);
     bestPrime = Math.max(bestPrime, highestPrimeOnBoard());
 
-    localStorage.setItem("bestScore", bestScore);
-    localStorage.setItem("bestPrime", bestPrime);
-
-    isAnimating = false;
     renderBoard();
     updateMedal();
 
+    // Save current board state
+    saveGameState();
+
+    isAnimating = false;
     if (isGameOver()) showGameOver();
   }, MOVE_DURATION);
 };
@@ -537,10 +578,13 @@ const startGame = () => {
   spawnTile(getRandomBasePrime());
   spawnTile(getRandomBasePrime());
   renderBoard();
+  saveGameState(); // Store initial state
 };
 
 newGameBtn.addEventListener("click", animateNewButton);
 newGameBtn.addEventListener("click", startGame);
 restartBtn.addEventListener("click", startGame);
 
-startGame();
+if (!loadGameState()) {
+  startGame();
+}
