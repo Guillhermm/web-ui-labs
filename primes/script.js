@@ -38,11 +38,13 @@ const movesValueEl = document.querySelector("[data-moves]");
 const newGameBtn = document.querySelector("[data-new-game]");
 const infoBtn = document.querySelector("[data-info]");
 
-const gameOverEl = document.querySelector("[data-game-over]");
+const gameOverModal = document.querySelector("[data-game-over]");
 const finalScoreEl = document.querySelector("[data-final-score]");
 const finalMovesEl = document.querySelector("[data-final-moves]");
 const finalPrimeEl = document.querySelector("[data-final-prime]");
 const restartBtn = document.querySelector("[data-restart]");
+const closeGameOverBtn = document.querySelector("[data-close-game-over]");
+
 
 const rulesModal = document.querySelector("[data-rules]");
 const pages = [...document.querySelectorAll(".rules-page")];
@@ -342,35 +344,11 @@ const computeMove = direction => {
 };
 
 /**
- * Game over
- */
-
-const canMergeLine = values =>
-  values.some((_, i) => bestMerge(values.slice(i)));
-
-const isGameOver = () => {
-  if (board.includes(null)) return false;
-
-  return !["left", "right", "up", "down"].some(dir =>
-    getLineIndexes(dir).some(line =>
-      canMergeLine(line.map(i => board[i]).filter(v => v !== null))
-    )
-  );
-};
-
-const showGameOver = () => {
-  finalScoreEl.textContent = score;
-  finalMovesEl.textContent = moves;
-  finalPrimeEl.textContent = highestPrimeOnBoard();
-  gameOverEl.classList.remove("hidden");
-};
-
-/**
  * Perform move
  */
 
 const move = async direction => {
-  if (isAnimating || !gameOverEl.classList.contains("hidden")) return;
+  if (isAnimating || !gameOverModal.classList.contains("hidden")) return;
 
   progressedThisMove = false;
 
@@ -447,6 +425,35 @@ boardElement.addEventListener("touchend", e => {
 });
 
 /**
+ * Game over
+ */
+
+const canMergeLine = values =>
+  values.some((_, i) => bestMerge(values.slice(i)));
+
+const isGameOver = () => {
+  if (board.includes(null)) return false;
+
+  return !["left", "right", "up", "down"].some(dir =>
+    getLineIndexes(dir).some(line =>
+      canMergeLine(line.map(i => board[i]).filter(v => v !== null))
+    )
+  );
+};
+
+const showGameOver = () => {
+  finalScoreEl.textContent = score;
+  finalMovesEl.textContent = moves;
+  finalPrimeEl.textContent = highestPrimeOnBoard();
+  gameOverModal.classList.remove("hidden");
+};
+
+// Close game over modal without doing anything else.
+closeGameOverBtn.addEventListener("click", () =>
+  gameOverModal.classList.add("hidden")
+);
+
+/**
  * Rules modal
  */
 
@@ -508,7 +515,7 @@ const startGame = () => {
   currentMedal = "none";
 
   hudMedalEl.dataset.medal = "none";
-  gameOverEl.classList.add("hidden");
+  gameOverModal.classList.add("hidden");
 
   spawnTile(getRandomBasePrime());
   spawnTile(getRandomBasePrime());

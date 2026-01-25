@@ -431,15 +431,19 @@ main {
 .game-over-card {
   width: 90%;
   max-width: 320px;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: .5rem;
 }
 
 .game-over-card h2 {
-  margin-bottom: 1rem;
+  margin-bottom: .5rem;
 }
 
 .game-over-card p {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0;
 }
 
 /* Rules modal */
