@@ -58,6 +58,11 @@
   --board-size: 4;
 }
 
+html, body {
+  /* This prevents the pull-down-to-refresh */
+  overscroll-behavior-y: contain;
+}
+
 /* Base layout */
 body {
   min-height: 100svh;

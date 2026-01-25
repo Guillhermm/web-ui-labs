@@ -405,24 +405,41 @@ window.addEventListener("keydown", e => {
 let touchStartX = 0;
 let touchStartY = 0;
 
+// Prevent native vertical scroll only if touch is on the board
+document.addEventListener('touchmove', function(e) {
+  if (window.pageYOffset === 0 && e.changedTouches[0].pageY > 0) {
+    e.preventDefault();
+  }
+}, {passive: false});  // must be false to allow preventDefault
+
 boardElement.addEventListener("touchstart", e => {
   if (e.touches.length !== 1) return;
+
   const t = e.touches[0];
   touchStartX = t.clientX;
   touchStartY = t.clientY;
-}, { passive: true });
+
+  e.preventDefault();
+}, { passive: false });
 
 boardElement.addEventListener("touchend", e => {
+  if (e.changedTouches.length !== 1) return;
+
   const t = e.changedTouches[0];
   const dx = t.clientX - touchStartX;
   const dy = t.clientY - touchStartY;
 
+  // Ignore tiny accidental touches
   if (Math.abs(dx) < SWIPE_THRESHOLD && Math.abs(dy) < SWIPE_THRESHOLD) return;
 
-  move(Math.abs(dx) > Math.abs(dy)
+  const direction = Math.abs(dx) > Math.abs(dy)
     ? (dx > 0 ? "right" : "left")
-    : (dy > 0 ? "down" : "up"));
-});
+    : (dy > 0 ? "down" : "up");
+
+  move(direction);
+
+  e.preventDefault();
+}, { passive: false });
 
 /**
  * Game over
