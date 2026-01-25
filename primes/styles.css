@@ -264,57 +264,6 @@ main {
   }
 }
 
-/* Generic modal */
-
-.modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-}
-
-.modal-card {
-  background: rgba(48, 48, 48, .75);
-  color: var(--text-primary);
-  padding: 1.5rem;
-  border-radius: 0.75rem;
-  animation: popIn 200ms ease-out;
-}
-
-@keyframes popIn {
-  from {
-    transform: scale(0.9);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-/* Game Over modal */
-
-.game-over.hidden {
-  display: none;
-}
-
-.game-over-card {
-  width: 90%;
-  max-width: 320px;
-  text-align: center;
-}
-
-.game-over-card h2 {
-  margin-bottom: 1rem;
-}
-
-.game-over-card p {
-  margin-bottom: 0.5rem;
-}
-
 /* Stats bar */
 .stats {
   width: 100%;
@@ -355,73 +304,6 @@ main {
   padding: 0.25rem 0.5rem;
   cursor: pointer;
   font-size: 1.5rem;
-}
-
-/* Rules modal */
-
-.rules-modal {
-  z-index: 200;
-}
-
-.rules-modal.hidden {
-  display: none;
-}
-
-.rules-card {
-  max-width: 360px;
-}
-
-.rules-card h3 {
-  margin-bottom: 0.75rem;
-}
-
-.rules-card p {
-  margin-bottom: 0.5rem;
-}
-
-
-/* Rules pagination */
-
-.rules-page {
-  display: none;
-}
-
-.rules-page.active {
-  display: block;
-}
-
-.rules-page a {
-  color: var(--color-accent);
-}
-
-.rules-page a:hover {
-  color: var(--color-accent-hover);
-}
-
-.rules-nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1rem;
-}
-
-.rules-arrow {
-  background: none;
-  border: none;
-  font-size: 2rem;
-  color: var(--color-accent);
-  cursor: pointer;
-  padding: 0 0.5rem;
-}
-
-.rules-arrow:disabled {
-  opacity: 0.3;
-  cursor: default;
-}
-
-.rules-indicator {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
 }
 
 .badge {
@@ -490,6 +372,8 @@ main {
   }
 }
 
+/* Default button */
+
 .btn {
   width: 100%;
   background: var(--color-accent);
@@ -505,6 +389,124 @@ main {
 
 .btn:hover {
   background: var(--color-accent-hover);
+}
+
+/* Generic modal */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal-card {
+  background: rgba(48, 48, 48, .75);
+  color: var(--text-primary);
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  animation: popIn 200ms ease-out;
+}
+
+@keyframes popIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Game Over modal */
+
+.game-over.hidden {
+  display: none;
+}
+
+.game-over-card {
+  width: 90%;
+  max-width: 320px;
+  text-align: center;
+}
+
+.game-over-card h2 {
+  margin-bottom: 1rem;
+}
+
+.game-over-card p {
+  margin-bottom: 0.5rem;
+}
+
+/* Rules modal */
+
+.rules-modal {
+  z-index: 200;
+}
+
+.rules-modal.hidden {
+  display: none;
+}
+
+.rules-card {
+  max-width: 360px;
+}
+
+.rules-card h3 {
+  margin-bottom: 0.75rem;
+}
+
+.rules-card p {
+  margin-bottom: 0.5rem;
+}
+
+
+/* Rules pagination */
+
+.rules-page {
+  display: none;
+}
+
+.rules-page.active {
+  display: block;
+}
+
+.rules-page a {
+  color: var(--color-accent);
+}
+
+.rules-page a:hover {
+  color: var(--color-accent-hover);
+}
+
+.rules-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.rules-arrow {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: var(--color-accent);
+  cursor: pointer;
+  padding: 0 0.5rem;
+}
+
+.rules-arrow:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.rules-indicator {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
 }
 
 /* Responsive */
