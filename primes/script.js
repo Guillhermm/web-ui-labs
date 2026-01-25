@@ -187,8 +187,8 @@ const isPrime = n => {
 const medalFromPrime = prime => {
   const n = BASE_PRIMES.length;
   if (prime >= BASE_PRIMES[n - 1]) return "gold";
-  if (prime >= BASE_PRIMES[Math.floor(n * 0.85)]) return "silver";
-  if (prime >= BASE_PRIMES[Math.floor(n * 0.6)]) return "bronze";
+  if (prime >= BASE_PRIMES[Math.floor(n * 0.85) - 1]) return "silver";
+  if (prime >= BASE_PRIMES[Math.floor(n * 0.6) - 1]) return "bronze";
   return "none";
 };
 
