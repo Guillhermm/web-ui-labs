@@ -19,32 +19,6 @@ const getRandomBasePrime = () =>
   Math.random() < 0.7 ? 2 : 3;
 
 /**
- * Tile colors (Material Dark inspired)
- */
-const TILE_COLORS = {
-  2: "#03DAC6",
-  3: "#00BFA5",
-  5: "#4DD0E1",
-  7: "#26C6DA",
-  11: "#64B5F6",
-  13: "#42A5F5",
-  17: "#7986CB",
-  19: "#5C6BC0",
-  23: "#9575CD",
-  29: "#7E57C2",
-  31: "#AB47BC",
-  37: "#9C27B0",
-  41: "#FFC107",
-  43: "#FFB300",
-  47: "#FB8C00",
-  53: "#F4511E",
-  59: "#E53935",
-  61: "#D32F2F",
-  67: "#C62828",
-  71: "#B71C1C",
-};
-
-/**
  * DOM references
  */
 
@@ -109,6 +83,11 @@ const getNextTargetPrime = () => {
   return PRIMES[idx + 1] ?? PRIMES[0];
 };
 
+const getTierFromPrime = prime => {
+  const index = PRIMES.indexOf(prime);
+  return Math.min(index + 1, 20);
+};
+
 /**
  * Medal logic
  */
@@ -138,7 +117,9 @@ const createTile = (value, index) => {
   tile.className = "tile";
   tile.textContent = value;
   tile.dataset.value = value;
-  tile.style.background = TILE_COLORS[value] ?? "#d0bcff";
+
+  const tier = getTierFromPrime(value);
+  tile.classList.add(`tile--tier-${tier}`);
 
   if (mergedIndexes.has(index)) tile.classList.add("tile--merge");
   if (index === spawnedIndex) tile.classList.add("tile--spawn");

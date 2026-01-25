@@ -22,6 +22,36 @@
   --color-on-accent: #381e72;
   --color-accent-hover: #baa1f3;
 
+  --tile-text-light: rgba(255, 255, 255, 0.92);
+  --tile-text-dark: rgba(0, 0, 0, 0.87);
+
+  /* Tiles color scale (agnostic, tier-based) */
+  --tile-color-1:  #d0bcff;
+  --tile-color-2:  #c7aefc;
+  --tile-color-3:  #bfa2f7;
+  --tile-color-4:  #b396f2;
+  --tile-color-5:  #a58ae5;
+
+  --tile-color-6:  #9a7ed8;
+  --tile-color-7:  #8e73cc;
+  --tile-color-8:  #8268bf;
+  --tile-color-9:  #775db3;
+  --tile-color-10: #6c52a7;
+
+  --tile-color-11: #5C6BC0; /* Indigo 400 */
+  --tile-color-12: #3F51B5; /* Indigo 500 */
+  --tile-color-13: #3949AB; /* Indigo 600 */
+
+  --tile-color-14: #1E88E5; /* Blue 600 */
+  --tile-color-15: #1976D2; /* Blue 700 */
+
+  --tile-color-16: #D32F2F; /* Red 700 */
+  --tile-color-17: #EF6C00; /* Orange 800 */
+  --tile-color-18: #F9A825; /* Amber 700 */
+
+  --tile-color-19: #00897B; /* Teal 600 */
+  --tile-color-20: #00695C; /* Teal 800 */
+
   --text-primary: rgba(255, 255, 255, .87);
   --text-secondary: rgba(255, 255, 255, .6);
 
@@ -153,14 +183,56 @@ main {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-accent);
+  background: var(--tile-color-1);
   border-radius: .25rem;
-  color: var(--color-on-accent);
+  color: var(--tile-text-dark);
   font-size: 2rem;
   font-weight: 600;
   line-height: 1;
+  user-select: none;
   transition: transform 150ms ease-in-out;
   will-change: transform;
+}
+
+.tile--tier-1  { background: var(--tile-color-1); }
+.tile--tier-2  { background: var(--tile-color-2); }
+.tile--tier-3  { background: var(--tile-color-3); }
+.tile--tier-4  { background: var(--tile-color-4); }
+.tile--tier-5  { background: var(--tile-color-5); }
+.tile--tier-6  { background: var(--tile-color-6); }
+.tile--tier-7  { background: var(--tile-color-7); }
+.tile--tier-8  { background: var(--tile-color-8); }
+.tile--tier-9  { background: var(--tile-color-9); }
+.tile--tier-10 { background: var(--tile-color-10); }
+.tile--tier-11 { background: var(--tile-color-11); }
+.tile--tier-12 { background: var(--tile-color-12); }
+.tile--tier-13 { background: var(--tile-color-13); }
+.tile--tier-14 { background: var(--tile-color-14); }
+.tile--tier-15 { background: var(--tile-color-15); }
+.tile--tier-16 { background: var(--tile-color-16); }
+.tile--tier-17 { background: var(--tile-color-17); }
+.tile--tier-18 { background: var(--tile-color-18); }
+.tile--tier-19 { background: var(--tile-color-19); }
+.tile--tier-20 { background: var(--tile-color-20); }
+
+.tile--tier-11,
+.tile--tier-12,
+.tile--tier-13,
+.tile--tier-14,
+.tile--tier-15,
+.tile--tier-16,
+.tile--tier-17,
+.tile--tier-18,
+.tile--tier-19,
+.tile--tier-20 {
+  color: var(--tile-text-light);
+}
+
+.tile--tier-18,
+.tile--tier-19,
+.tile--tier-20 {
+  box-shadow: 0 0 1rem rgba(0, 0, 0, 0.25),
+              0 0 0.75rem currentColor;
 }
 
 .tile--spawn {
@@ -208,7 +280,7 @@ main {
 
 .game-over-card {
   background: var(--color-bg-secondary);
-  padding: 2rem;
+  padding: 1.5rem;
   border-radius: 0.75rem;
   width: 90%;
   max-width: 320px;
@@ -240,7 +312,6 @@ main {
   width: 100%;
   height: auto;
   background: var(--color-bg-secondary);
-  box-shadow: 0 -1rem 2rem rgba(0, 0, 0, 0.25);
   display: flex;
   align-items: center;
 }
@@ -316,6 +387,7 @@ main {
   color: var(--text-primary);
   text-align: center;
   padding: 0.5rem;
+  user-select: none;
 }
 
 .badge-label {
