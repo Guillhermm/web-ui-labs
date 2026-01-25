@@ -45,6 +45,10 @@ const finalPrimeEl = document.querySelector("[data-final-prime]");
 const restartBtn = document.querySelector("[data-restart]");
 
 const rulesModal = document.querySelector("[data-rules]");
+const pages = [...document.querySelectorAll(".rules-page")];
+const prevBtn = document.querySelector("[data-page-prev]");
+const nextBtn = document.querySelector("[data-page-next]");
+const indicator = document.querySelector("[data-indicator]");
 const closeRulesBtn = document.querySelector("[data-close-rules]");
 
 const hudMedalEl = document.querySelector(".hud-medal");
@@ -446,9 +450,40 @@ boardElement.addEventListener("touchend", e => {
  * Rules modal
  */
 
-infoBtn.addEventListener("click", () =>
-  rulesModal.classList.remove("hidden")
-);
+let currentPage = 0;
+
+const updateRulesPage = () => {
+  pages.forEach((p, i) =>
+    p.classList.toggle("active", i === currentPage)
+  );
+
+  console.log('here');
+  indicator.textContent = `${currentPage + 1} / ${pages.length}`;
+  prevBtn.disabled = currentPage === 0;
+  nextBtn.disabled = currentPage === pages.length - 1;
+};
+
+prevBtn.addEventListener("click", () => {
+  if (currentPage > 0) {
+    currentPage--;
+    updateRulesPage();
+  }
+});
+
+nextBtn.addEventListener("click", () => {
+  console.log('here');
+  if (currentPage < pages.length - 1) {
+    currentPage++;
+    updateRulesPage();
+  }
+});
+
+/* Reset when opening */
+infoBtn.addEventListener("click", () => {
+  rulesModal.classList.remove("hidden");
+  currentPage = 0;
+  updateRulesPage();
+});
 
 closeRulesBtn.addEventListener("click", () =>
   rulesModal.classList.add("hidden")
