@@ -19,16 +19,48 @@ const getRandomBasePrime = () =>
   Math.random() < 0.7 ? 2 : 3;
 
 /**
+ * Tile colors (Material Dark inspired)
+ */
+const TILE_COLORS = {
+  2: "#03DAC6",
+  3: "#00BFA5",
+  5: "#4DD0E1",
+  7: "#26C6DA",
+  11: "#64B5F6",
+  13: "#42A5F5",
+  17: "#7986CB",
+  19: "#5C6BC0",
+  23: "#9575CD",
+  29: "#7E57C2",
+  31: "#AB47BC",
+  37: "#9C27B0",
+  41: "#FFC107",
+  43: "#FFB300",
+  47: "#FB8C00",
+  53: "#F4511E",
+  59: "#E53935",
+  61: "#D32F2F",
+  67: "#C62828",
+  71: "#B71C1C",
+};
+
+/**
  * DOM references
  */
 
 const boardElement = document.querySelector(".game-board");
 const cells = [...boardElement.querySelectorAll(".cell")];
 
+const scoreValueEl = document.querySelector("[data-score]");
+const scoreBestEl = document.querySelector("[data-score-best]");
+const primeValueEl = document.querySelector("[data-prime]");
+const primeBestEl = document.querySelector("[data-prime-best]");
+
 const nextValueEl = document.querySelector("[data-next]");
 const movesValueEl = document.querySelector("[data-moves]");
-const scoreValueEl = document.querySelector("[data-score]");
+
 const newGameBtn = document.querySelector("[data-new-game]");
+const infoBtn = document.querySelector("[data-info]");
 
 const gameOverEl = document.querySelector("[data-game-over]");
 const finalScoreEl = document.querySelector("[data-final-score]");
@@ -36,7 +68,17 @@ const finalMovesEl = document.querySelector("[data-final-moves]");
 const finalPrimeEl = document.querySelector("[data-final-prime]");
 const restartBtn = document.querySelector("[data-restart]");
 
+const rulesModal = document.querySelector("[data-rules]");
+const closeRulesBtn = document.querySelector("[data-close-rules]");
+
 const hudMedalEl = document.querySelector(".hud-medal");
+
+/**
+ * Persistent stats
+ */
+
+let bestScore = Number(localStorage.getItem("bestScore") || 0);
+let bestPrime = Number(localStorage.getItem("bestPrime") || 0);
 
 /**
  * Game state
@@ -49,8 +91,6 @@ let isAnimating = false;
 
 let mergedIndexes = new Set();
 let spawnedIndex = null;
-let progressedThisMove = false;
-
 let currentMedal = "none";
 
 /**
@@ -60,24 +100,24 @@ let currentMedal = "none";
 const boardsEqual = (a, b) =>
   a.every((v, i) => v === b[i]);
 
-const getNextTargetPrime = () => {
-  const maxCurrent = Math.max(...board.filter(v => v !== null));
-  const maxCurrentIndex = PRIMES.indexOf(maxCurrent);
-  return PRIMES[maxCurrentIndex + 1];
-};
-
 const highestPrimeOnBoard = () =>
   Math.max(...board.filter(v => v !== null), 0);
+
+const getNextTargetPrime = () => {
+  const maxCurrent = highestPrimeOnBoard();
+  const idx = PRIMES.indexOf(maxCurrent);
+  return PRIMES[idx + 1] ?? PRIMES[0];
+};
 
 /**
  * Medal logic
  */
 
 const medalFromPrime = prime => {
-  const numberOfPrimes = PRIMES.length;
-  if (prime >= PRIMES[numberOfPrimes - 1]) return "gold"; // Last prime
-  if (prime >= PRIMES[Math.floor(numberOfPrimes * .85) - 1]) return "silver";
-  if (prime >= PRIMES[Math.floor(numberOfPrimes * .6) - 1]) return "bronze";
+  const n = PRIMES.length;
+  if (prime >= PRIMES[n - 1]) return "gold";
+  if (prime >= PRIMES[Math.floor(n * 0.85)]) return "silver";
+  if (prime >= PRIMES[Math.floor(n * 0.6)]) return "bronze";
   return "none";
 };
 
@@ -90,7 +130,7 @@ const updateMedal = () => {
 };
 
 /**
- * Tile helpers
+ * Tiles
  */
 
 const createTile = (value, index) => {
@@ -98,6 +138,7 @@ const createTile = (value, index) => {
   tile.className = "tile";
   tile.textContent = value;
   tile.dataset.value = value;
+  tile.style.background = TILE_COLORS[value] ?? "#d0bcff";
 
   if (mergedIndexes.has(index)) tile.classList.add("tile--merge");
   if (index === spawnedIndex) tile.classList.add("tile--spawn");
@@ -139,9 +180,14 @@ const renderBoard = () => {
 
   nextValueEl.textContent = getNextTargetPrime();
   movesValueEl.textContent = moves;
-  scoreValueEl.textContent = score;
 
-  // Reset animation flags after render
+  scoreValueEl.textContent = score;
+  scoreBestEl.textContent = bestScore;
+
+  const highest = highestPrimeOnBoard();
+  primeValueEl.textContent = highest;
+  primeBestEl.textContent = bestPrime;
+
   mergedIndexes.clear();
   spawnedIndex = null;
 };
@@ -307,17 +353,22 @@ const move = async direction => {
     if (tile) animateMove(tile, from, to);
   });
 
-  await new Promise(r => setTimeout(r, MOVE_DURATION));
+  setTimeout(() => {
+    board = newBoard;
+    spawnTile(getRandomBasePrime());
 
-  board = newBoard;
+    bestScore = Math.max(bestScore, score);
+    bestPrime = Math.max(bestPrime, highestPrimeOnBoard());
 
-  spawnTile(getRandomBasePrime());
-  isAnimating = false;
+    localStorage.setItem("bestScore", bestScore);
+    localStorage.setItem("bestPrime", bestPrime);
 
-  renderBoard();
-  updateMedal();
+    isAnimating = false;
+    renderBoard();
+    updateMedal();
 
-  if (isGameOver()) showGameOver();
+    if (isGameOver()) showGameOver();
+  }, MOVE_DURATION);
 };
 
 /**
@@ -329,7 +380,7 @@ window.addEventListener("keydown", e => {
     ArrowLeft: "left",
     ArrowRight: "right",
     ArrowUp: "up",
-    ArrowDown: "down"
+    ArrowDown: "down",
   };
   if (map[e.key]) {
     e.preventDefault();
@@ -362,6 +413,18 @@ boardElement.addEventListener("touchend", e => {
     ? (dx > 0 ? "right" : "left")
     : (dy > 0 ? "down" : "up"));
 });
+
+/**
+ * Rules modal
+ */
+
+infoBtn.addEventListener("click", () =>
+  rulesModal.classList.remove("hidden")
+);
+
+closeRulesBtn.addEventListener("click", () =>
+  rulesModal.classList.add("hidden")
+);
 
 /**
  * Lifecycle

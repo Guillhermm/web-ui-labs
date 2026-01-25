@@ -56,17 +56,47 @@
       </div>
       <div class="stats">
         <div class="stats-container">
-          <div class="badge score">
+          <div class="badge">
             <div class="badge-label">Score</div>
-            <div class="badge-value" data-score>0</div>
+            <div class="stat-value">
+              <span title="Current score" data-score>0</span>/<span class="stat-best" title="Best score" data-score-best>0</span>
+            </div>
           </div>
-          <div class="badge best">
-            <div class="badge-label">Best</div>
-            <div class="badge-value" data-best>0</div>
+          <div class="badge">
+            <div class="badge-label">Highest Prime</div>
+            <div class="stat-value">
+              <span title="Current highest prime" data-prime>0</span>/<span class="stat-best" title="Best highest prime" data-prime-best>0</span>
+            </div>
           </div>
         </div>
       </div>
     </section>
+    <section class="game-controls-container">
+      <div class="control-item">
+        <button class="btn-new-game" type="button" title="New Game" data-new-game>
+          <svg viewBox="0 0 128 128">
+            <path d=" M64,24 A24,24 0 1,0 64,104 A24,24 0 1,0 64,24"></path>
+            <path class="arrow" d=" M46,18 L64,24 L50,38 "></path>
+          </svg>
+        </button>
+      </div>
+      <div class="control-item info-controls">
+        <button class="btn-info" title="Display game information" data-info>Info</button>
+      </div>      
+    </section>
+    <div class="rules-modal hidden" data-rules>
+      <div class="rules-card">
+        <h3>How to Play</h3>
+        <p>• Swipe or use arrow keys to move tiles.</p>
+        <p>• Merge 2 or 3 adjacent primes.</p>
+        <p>• The sum must be a prime ≤ the “Next” value.</p>
+        <p>• Try to reach the highest prime possible.</p>
+        <p>• Highest prime before 50 wins <strong>bronze</strong>.</p>
+        <p>• Highest prime before 75 wins <strong>silver</strong>.</p>
+        <p>• Highest prime before 100 wins <strong>gold</strong>.</p>
+        <button class="btn small" data-close-rules>Close</button>
+      </div>
+    </div>
     <div class="game-over hidden" data-game-over>
       <div class="game-over-card">
         <h2>Game Over</h2>
@@ -79,14 +109,6 @@
           Play Again
         </button>
       </div>
-    </div>
-    <div class="new-game-container">
-      <button class="btn-new-game" type="button" data-new-game="" title="New Game">
-        <svg viewBox="0 0 128 128">
-          <path d=" M64,24 A24,24 0 1,0 64,104 A24,24 0 1,0 64,24"></path>
-          <path class="arrow" d=" M46,18 L64,24 L50,38 "></path>
-        </svg>
-      </button>
     </div>
   </main>
 </body>
