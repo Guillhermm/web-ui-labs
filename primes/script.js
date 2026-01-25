@@ -7,13 +7,15 @@ const CELL_COUNT = BOARD_SIZE * BOARD_SIZE;
 const MOVE_DURATION = 150;
 const SWIPE_THRESHOLD = 30;
 
-const PRIMES = [
+const BASE_PRIMES = [
   2, 3, 5, 7, 11,
   13, 17, 19, 23, 29,
   31, 37, 41, 43, 47,
   53, 59, 61, 67, 71,
   73, 79, 83, 89, 97,
 ];
+
+const PRIMES = [...BASE_PRIMES];
 
 const getRandomBasePrime = () =>
   Math.random() < 0.7 ? 2 : 3;
@@ -77,15 +79,58 @@ const boardsEqual = (a, b) =>
 const highestPrimeOnBoard = () =>
   Math.max(...board.filter(v => v !== null), 0);
 
+const ensurePrimeAtIndex = index => {
+  while (PRIMES.length <= index) {
+    const next = generateNextPrime(PRIMES[PRIMES.length - 1]);
+    PRIMES.push(next);
+  }
+  return PRIMES[index];
+};
+
 const getNextTargetPrime = () => {
   const maxCurrent = highestPrimeOnBoard();
-  const idx = PRIMES.indexOf(maxCurrent);
-  return PRIMES[idx + 1] ?? PRIMES[0];
+  const index = PRIMES.indexOf(maxCurrent);
+
+  // If prime not found (beyond base), find or generate
+  const safeIndex = index !== -1
+    ? index
+    : PRIMES.findIndex(p => p > maxCurrent) - 1;
+
+  return ensurePrimeAtIndex(safeIndex + 1);
 };
 
 const getTierFromPrime = prime => {
-  const index = PRIMES.indexOf(prime);
+  let index = PRIMES.indexOf(prime);
+
+  if (index === -1) {
+    // Ensure primes up to this value exist
+    while (PRIMES[PRIMES.length - 1] < prime) {
+      PRIMES.push(generateNextPrime(PRIMES[PRIMES.length - 1]));
+    }
+    index = PRIMES.indexOf(prime);
+  }
+
   return Math.min(index + 1, 20);
+};
+
+const generateNextPrime = lastPrime => {
+  let candidate = lastPrime + 2;
+  while (!isPrime(candidate)) {
+    candidate += 2;
+  }
+  return candidate;
+};
+
+const isPrime = n => {
+  if (n < 2) return false;
+  if (n === 2) return true;
+  if (n % 2 === 0) return false;
+
+  const limit = Math.sqrt(n);
+  for (let i = 3; i <= limit; i += 2) {
+    if (n % i === 0) return false;
+  }
+  return true;
 };
 
 /**
@@ -93,10 +138,10 @@ const getTierFromPrime = prime => {
  */
 
 const medalFromPrime = prime => {
-  const n = PRIMES.length;
-  if (prime >= PRIMES[n - 1]) return "gold";
-  if (prime >= PRIMES[Math.floor(n * 0.85)]) return "silver";
-  if (prime >= PRIMES[Math.floor(n * 0.6)]) return "bronze";
+  const n = BASE_PRIMES.length;
+  if (prime >= BASE_PRIMES[n - 1]) return "gold";
+  if (prime >= BASE_PRIMES[Math.floor(n * 0.85)]) return "silver";
+  if (prime >= BASE_PRIMES[Math.floor(n * 0.6)]) return "bronze";
   return "none";
 };
 
@@ -193,8 +238,10 @@ const spawnTile = value => {
  * Merge helpers
  */
 
-const isValidPrime = sum =>
-  PRIMES.includes(sum) && sum <= getNextTargetPrime();
+const isValidPrime = sum => {
+  if (!isPrime(sum)) return false;
+  return sum <= getNextTargetPrime();
+};
 
 const bestMerge = values => {
   const candidates = [];
