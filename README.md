@@ -25,9 +25,9 @@ No frameworks. No build tools. No dependencies.
   A visual exploration of prime numbers represented in binary form.  
   **Path:** `prime-binary-display/`
 
-- **Primes**
-  A 2048-inspired puzzle game built around prime numbers, featuring custom merge rules, dynamic prime generation, tile persistence via localStorage, responsive touch controls, and adaptive UI scaling.  
-  **Path:**`primes/`
+- **Primes** (🚨 Project moved)
+  This project has been moved to a new repository:  
+  **URL:** https://github.com/Guillhermm/primes
 
 ## Notes
 
