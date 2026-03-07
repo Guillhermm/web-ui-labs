@@ -7,6 +7,10 @@ Each experiment lives in its own directory and can be run independently.
 
 No frameworks. No build tools. No dependencies.
 
+## Live Demos
+
+[Visit Hub Web Page](https://guillhermm.github.io/web-ui-labs/) to see all animations.
+
 ## Experiments
 
 - **Calculator**  
@@ -32,3 +36,7 @@ No frameworks. No build tools. No dependencies.
 ## Notes
 
 These projects are experimental by nature and are not intended as production-ready components.
+
+## License
+
+MIT License - See [LICENSE](LICENSE) file for details.
