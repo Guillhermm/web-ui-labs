@@ -1,3 +1,13 @@
+:root {
+  --bg: #0b0d10;
+  --ink: #e6e8eb;
+  --muted: #8b929c;
+  --axis: #6b737e;
+  --flash: #ffd29a;
+  --panel: rgb(20 23 28 / .86);
+  --panel-border: rgb(230 232 235 / .12);
+}
+
 body {
   background: #000;
 }
