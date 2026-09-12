@@ -8,8 +8,25 @@
   --panel-border: rgb(230 232 235 / .12);
 }
 
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0; 
+  height: 100%;
+}
+
 body {
   background: #000;
+}
+
+.viewer {
+  width: 100%;
+  padding: 16px;
+  display: grid;
+  justify-items: center;
+  gap: 12px;
 }
 
 .stage {
@@ -27,3 +44,118 @@ canvas {
   touch-action: none;
   border-radius: 12px;
 }
+
+canvas:active {
+  cursor: grabbing;
+}
+
+canvas:focus-visible {
+  outline: 2px solid var(--axis); outline-offset: -2px;
+}
+
+.note {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  font-size: clamp(12px, 2.2vmin, 15px);
+  color: var(--ink);
+  white-space: nowrap;
+  text-shadow: 0 0 3px var(--bg), 0 0 6px var(--bg), 0 0 10px var(--bg);
+  transition: opacity 0.4s ease;
+}
+
+.note::before {
+  content: "";
+  position: absolute;
+  left: -3px;
+  top: -3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ink);
+}
+.note-below { translate: -50% 10px; }
+.note-below::before { left: calc(50% - 3px); top: -13px; }
+.note-right { translate: 10px -50%; }
+.note-right::before { left: -13px; top: calc(50% - 3px); }
+
+.tooltip {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+  width: min(220px, 55%);
+  padding: 8px 10px;
+  display: grid;
+  gap: 2px;
+  pointer-events: none;
+  font-size: 13px;
+  line-height: 1.35;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  backdrop-filter: blur(6px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .2s ease, visibility .2s;
+}
+
+.tooltip.is-visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.tooltip-title {
+  font-size: 14px;
+}
+
+.tooltip-stats {
+  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+
+.controls {
+  width: min(100%, 700px);
+  display: grid;
+  grid-template-columns: 1fr 150px 180px;
+  column-gap: 28px;
+}
+
+.legend, .speed, .singularity {
+  display: grid;
+  grid-template-rows: auto 30px auto;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.legend { outline: none; }
+
+.control-title { display: flex; align-items: baseline; gap: 6px; }
+.control-note { font-size: 11px; opacity: 0.8; }
+.control-scale { display: flex; justify-content: space-between; font-size: 12px; }
+.speed-value { margin-left: auto; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+.legend-bar {
+  position: relative;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--ramp, linear-gradient(to right, #43d0dc, #f6ac54));
+  cursor: crosshair;
+  touch-action: none;
+}
+.legend:focus-visible .legend-bar { outline: 2px solid var(--axis); outline-offset: 3px; }
+.legend-band {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.legend.is-active .legend-band { opacity: 1; }
