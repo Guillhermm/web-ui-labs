@@ -1,27 +1,36 @@
 'use strict';
 
+/**
+ * Pure model (flow, palette, camera, picking, collapse) is exposed globally.
+ */
 const Vortex = (() => {
   const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
   const FLOW = Object.freeze({
-    circulation: 0.9,
-    coreRadius: 0.28,
-    stretch: 0.35,
-    spawnHeight: [0, 0.05],
-    upwardBias: 0.56,
+    circulation: .9,
+    coreRadius: .28,
+    stretch: .35,
+    spawnHeight: [0, .05],
+    upwardBias: .56,
     trail: 34,
   });
 
+  // Layer profiles, interpolated between these rows:
+  // - [layer, end radius, middle radius, belly height, color tone, base axial speed, ceiling]
   const LAYERS = Object.freeze([
-    [0.00, 0.09, 0.10, 0.8, 1.00, 0.10, 1.3],
-    [0.33, 0.19, 0.21, 0.8, 0.82, 0.10, 1.3],
-    [0.38, 0.24, 0.30, 0.6, 0.66, 0.08, 1.05],
-    [0.70, 0.37, 0.46, 0.6, 0.48, 0.07, 0.95],
-    [0.74, 0.37, 0.58, 0.24, 0.30, 0.04, 0.6],
-    [1.00, 0.40, 1.15, 0.22, 0.06, 0.04, 0.5],
+    [.00, .09, .10, .8, 1.00, .10, 1.3],
+    [.33, .19, .21, .8, .82, .10, 1.3],
+    [.38, .24, .30, .6, .66, .08, 1.05],
+    [.70, .37, .46, .6, .48, .07, .95],
+    [.74, .37, .58, .24, .30, .04, .6],
+    [1.00, .40, 1.15, .22, .06, .04, .5],
   ]);
 
-  const LAYER_BANDS = Object.freeze([[0.38, 0.3], [0.74, 0.22], [1, 0.48]]);
+  // Share of new tracers per band of layers: [up to layer, share]. The teal
+  // band lives only around the middle, so it needs more tracers to read as
+  // dense as possible.
+  const LAYER_BANDS = Object.freeze([[.38, .3], [.74, .22], [1, .48]]);
 
+  // Maps a uniform random number to a layer, honoring LAYER_BANDS..
   const pickLayer = (u) => {
     let from = 0;
     let below = 0;
@@ -45,6 +54,7 @@ const Vortex = (() => {
   const radiusAt = (shape, z) =>
     shape.end + (shape.middle - shape.end) * Math.exp(-((z / shape.belly) ** 2));
 
+  // Axial speed: away from the mid-plane, growing with height.
   const axialSpeed = (shape, z) => Math.sign(z || 1) * (shape.rise + FLOW.stretch * Math.abs(z));
 
   const omega = (r) => {
@@ -52,14 +62,20 @@ const Vortex = (() => {
     return (circulation * (1 - Math.exp(-(r * r) / (coreRadius * coreRadius)))) / (r * r);
   };
 
+  // How many times faster than the rim (r = 1) a tracer at r is spinning.
   const relativeSpin = (r) => omega(r) / omega(1);
 
-  const motion = ({ shape, z }) => {
+  // Radial and axial speed of a tracer on its layer's profile.
+  const motion = ({
+    shape,
+    z,
+  }) => {
     const uz = axialSpeed(shape, z);
     const slope = (-2 * z / shape.belly ** 2) * (shape.middle - shape.end) * Math.exp(-((z / shape.belly) ** 2));
     return { ur: slope * uz, uz };
   };
 
+  // Which motion dominates where the tracer is: spiraling in or moving along the axis.
   const phaseOf = (p) => {
     const { ur, uz } = motion(p);
     return Math.abs(ur) > Math.abs(uz) ? 'inward' : 'axial';
@@ -71,46 +87,80 @@ const Vortex = (() => {
     pts: new Float32Array(FLOW.trail * 3),
   });
 
-  const spawn = (p, { random = Math.random } = {}) => {
+  // Starts a tracer on a random layer, just off the mid-plane.
+  const spawn = (
+    p,
+    {
+      random = Math.random,
+    } = {},
+  ) => {
+    const [low, high] = FLOW.spawnHeight;
     p.layer = pickLayer(random());
     p.shape = layerShape(p.layer);
     p.theta = random() * Math.PI * 2;
-    const [low, high] = FLOW.spawnHeight;
     p.z = (random() < FLOW.upwardBias ? 1 : -1) * (low + random() * (high - low));
     p.r = radiusAt(p.shape, p.z);
     p.age = 0;
     p.len = 0;
     p.head = 0;
     p.generation += 1;
+
     return p;
   };
 
-  const advanceHeight = (shape, z, dt) =>
-    z + axialSpeed(shape, z + axialSpeed(shape, z) * dt / 2) * dt;
+  // Height after dt along the layer (midpoint rule).
+  const advanceHeight = (
+    shape,
+    z,
+    dt,
+  ) => z + axialSpeed(shape, z + axialSpeed(shape, z) * dt / 2) * dt;
 
-  const step = (p, dt, { random = Math.random, spin = 1, record = true } = {}) => {
+  // Advances a tracer by dt and, unless record is false, adds the new
+  // position to its trail ring buffer. The spin scales its angular velocity
+  // (the blowup spins the core up).
+  const step = (
+    p,
+    dt,
+    {
+      random = Math.random,
+      spin = 1,
+      record = true,
+    } = {},
+  ) => {
     const { trail } = FLOW;
     p.theta += omega(p.r) * spin * dt;
     p.z = advanceHeight(p.shape, p.z, dt);
     p.r = radiusAt(p.shape, p.z);
     p.age += dt;
+
     if (Math.abs(p.z) > p.shape.ceiling) spawn(p, { random });
     else if (!record) return p;
+
     p.head = (p.head + 1) % trail;
     const i = p.head * 3;
+
     p.pts[i] = p.r * Math.cos(p.theta);
     p.pts[i + 1] = p.z;
     p.pts[i + 2] = p.r * Math.sin(p.theta);
     p.len = Math.min(p.len + 1, trail);
+  
     return p;
   };
 
-  const predictPath = (p, { horizon = 6, maxTurn = 0.25 } = {}) => {
+  // Where a tracer is headed over the next horizon seconds, as [x, y, z]
+  // points, stopping where it would respawn. The step shrinks near the core
+  // so the swirl never advances more than maxTurn radians per point.
+  const predictPath = (
+    p,
+    { horizon = 6,
+      maxTurn = .25,
+    } = {},
+  ) => {
     const path = [];
     let { r, theta, z } = p;
     for (let t = 0; t < horizon && path.length < 600;) {
       const spin = omega(r);
-      const dt = Math.min(0.08, maxTurn / spin);
+      const dt = Math.min(.08, maxTurn / spin);
       theta += spin * dt;
       z = advanceHeight(p.shape, z, dt);
       r = radiusAt(p.shape, z);
@@ -118,24 +168,26 @@ const Vortex = (() => {
       if (Math.abs(z) > p.shape.ceiling) break;
       path.push([r * Math.cos(theta), z, r * Math.sin(theta)]);
     }
+
     return path;
   };
 
   const COLLAPSE = Object.freeze({
     duration: 5,
-    minScale: 0.3,
-    anisotropy: 0.2,
-    reach: 0.65,
+    minScale: .3,
+    anisotropy: .2,
+    reach: .65,
     maxRate: 4,
     restore: 1.6,
   });
 
   const collapseScale = (t) => Math.max(1 - t / COLLAPSE.duration, 0);
-
   const drawnScale = (scale) => Math.max(scale, COLLAPSE.minScale);
-
+  // The core's height shrinks more slowly than its radius.
   const axialScale = (radial) => radial ** (1 - 2 * COLLAPSE.anisotropy);
 
+  // How much a point at radius r is pulled toward the origin: fully (by the
+  // core scales) near the axis, not at all in the exterior.
   const contraction = (r, radial) => {
     const weight = Math.exp(-((r / COLLAPSE.reach) ** 2));
     return {
@@ -147,12 +199,12 @@ const Vortex = (() => {
   const timeRate = (scale) => Math.min(1 / scale, COLLAPSE.maxRate);
 
   const STOPS = Object.freeze([
-    [0, [67, 208, 220]], [0.35, [30, 168, 200]], [0.6, [44, 108, 216]],
-    [0.78, [118, 122, 178]], [0.9, [230, 152, 76]], [1, [246, 172, 84]],
+    [0, [67, 208, 220]], [.35, [30, 168, 200]], [.6, [44, 108, 216]],
+    [.78, [118, 122, 178]], [.9, [230, 152, 76]], [1, [246, 172, 84]],
   ]);
   const PALETTE_SIZE = 64;
   const OMEGA_RIM = omega(1.1);
-  const OMEGA_CORE = omega(0.14);
+  const OMEGA_CORE = omega(.14);
 
   const interpolate = (stops, s) => {
     const k = Math.max(stops.findIndex(([at]) => at >= s), 1);
@@ -162,24 +214,28 @@ const Vortex = (() => {
     return ca.map((c, j) => Math.round(c + (cb[j] - c) * f));
   };
 
+  // Each entry has the tube body color and a lighter highlight for shading.
   const PALETTE = Array.from({ length: PALETTE_SIZE }, (_, i) => {
     const rgb = interpolate(STOPS, i / (PALETTE_SIZE - 1));
-    const light = rgb.map((c) => Math.round(c + (255 - c) * 0.5));
+    const light = rgb.map((c) => Math.round(c + (255 - c) * .5));
     return { base: `rgb(${rgb})`, light: `rgb(${light})` };
   });
 
+  // 0 at the rim's angular speed, 1 at the resting core's, clamped. The spin
+  // scales the angular speed (the blowup spins the core up).
   const speedFraction = (r, spin = 1) =>
     clamp(Math.log((omega(r) * spin) / OMEGA_RIM) / Math.log(OMEGA_CORE / OMEGA_RIM), 0, 1);
 
   const colorAt = (tone) => PALETTE[Math.round(clamp(tone, 0, 1) * (PALETTE_SIZE - 1))];
-
   const colorOf = (r, spin = 1) => colorAt(speedFraction(r, spin));
-
+  // Each layer keeps its color along its whole length.
   const layerTone = (layer) => layerShape(layer).tone;
-
+  // Where a tracer sits on the color ramp.. spin > 1 heats it toward orange.
   const toneOf = ({ shape }, spin = 1) =>
     (spin === 1 ? shape.tone : shape.tone + (1 - shape.tone) * (1 - 1 / spin));
 
+  // The [low, high] slice of the ramp the legend highlights around center,
+  // kept whole by sliding it inward at the ends.
   const highlightBand = (center, halfWidth) => {
     const c = clamp(center, halfWidth, 1 - halfWidth);
     return [c - halfWidth, c + halfWidth];
@@ -190,9 +246,14 @@ const Vortex = (() => {
   const rampGradient = () =>
     `linear-gradient(to right, ${STOPS.map(([at, rgb]) => `rgb(${rgb}) ${at * 100}%`).join(', ')})`;
 
-  const createCamera = ({ yaw = 0, pitch = -0.33, distance = 5 } = {}) => {
+  // Orbit camera: yaw turns the vortex about its axis, pitch tilts it toward
+  // the viewer, then a simple perspective divide.
+  const createCamera = ({ yaw = 0, pitch = -.33, distance = 5 } = {}) => {
     let cosY = 1, sinY = 0, cosP = 1, sinP = 0;
+
+    // The blowup's contraction of the core, 1 at rest.
     let radialScale = 1;
+
     const orient = (y, p) => {
       cosY = Math.cos(y);
       sinY = Math.sin(y);
@@ -202,18 +263,24 @@ const Vortex = (() => {
     orient(yaw, pitch);
 
     const setContraction = (scale) => { radialScale = scale; };
+
+    // How a point at radius r is drawn during the blowup (1, 1 at rest).
     const squeeze = (r) => (radialScale === 1 ? { kr: 1, kz: 1 } : contraction(r, radialScale));
+
+    // Camera-space depth of a tracer's newest point.. larger is nearer.
     const depthOf = (p) => {
       const i = p.head * 3;
       const z1 = -p.pts[i] * sinY + p.pts[i + 2] * cosY;
       return p.pts[i + 1] * sinP + z1 * cosP;
     };
 
+    // Positive when the tracer's newest point is in front of the axis.
     const sideOf = (p) => {
       const i = p.head * 3;
       return -p.pts[i] * sinY + p.pts[i + 2] * cosY;
     };
 
+    // contract: false exempts fixed scenery, like the axis, from the blowup.
     const point = (x0, y0, z0, { cx, cy, scale }, { contract = true } = {}) => {
       const { kr, kz } = contract ? squeeze(Math.hypot(x0, z0)) : { kr: 1, kz: 1 };
       const x = x0 * kr;
@@ -224,9 +291,12 @@ const Vortex = (() => {
       const yc = y * cosP - z1 * sinP;
       const zc = y * sinP + z1 * cosP;
       const f = distance / (distance - zc);
+
       return { x: cx + x1 * f * scale, y: cy - yc * f * scale, f, depth: zc, side: z1 };
     };
 
+    // Writes x, y and the perspective factor of each trail point, newest
+    // first, into out. view holds the screen center (cx, cy) and scale.
     const project = (p, out, { cx, cy, scale }) => {
       const { trail } = FLOW;
       for (let k = 0; k < p.len; k++) {
@@ -244,12 +314,23 @@ const Vortex = (() => {
         out[k * 3 + 1] = cy - yc * f * scale;
         out[k * 3 + 2] = f;
       }
+
       return out;
     };
 
-    return { orient, setContraction, squeeze, depthOf, sideOf, point, project };
+    return {
+      orient,
+      setContraction,
+      squeeze,
+      depthOf,
+      sideOf,
+      point,
+      project,
+    };
   };
 
+  // Index of the head (pairs of x, y in heads) nearest to (x, y) within
+  // radius, or -1. NaN entries mark tracers that cant be picked.
   const pickNearest = (heads, x, y, radius) => {
     let best = -1;
     let bestDistance = radius * radius;
@@ -262,24 +343,25 @@ const Vortex = (() => {
         bestDistance = d;
       }
     }
+
     return best;
   };
 
   const CHUNKS = 6;
   const AXIS_LENGTH = 1.45;
 
+  // Fades a tracer in after it spawns and out before it respawns.
   const trailAlpha = (p) => {
-    const fadeIn = Math.min(p.age / 0.8, 1);
-    const fadeOut = Math.min((p.shape.ceiling - Math.abs(p.z)) / 0.25, 1);
+    const fadeIn = Math.min(p.age / .8, 1);
+    const fadeOut = Math.min((p.shape.ceiling - Math.abs(p.z)) / .25, 1);
     return Math.max(fadeIn * fadeOut, 0);
   };
-
-  const fog = (depth) => 0.45 + 0.55 * clamp((depth + 1.3) / 2.6, 0, 1);
+  const fog = (depth) => .45 + .55 * clamp((depth + 1.3) / 2.6, 0, 1);
 
   const drawTrail = (ctx, p, screen, unit, opacity, spin) => {
     const n = p.len;
     const alpha = trailAlpha(p) * opacity;
-    if (n < 3 || alpha <= 0.01) return;
+    if (n < 3 || alpha <= .01) return;
     const color = colorAt(toneOf(p, spin));
     const width = (2 + 3 * p.layer) * screen[2] * (unit / 230);
     for (let c = CHUNKS - 1; c >= 0; c--) {
@@ -292,12 +374,12 @@ const Vortex = (() => {
       ctx.lineCap = c === 0 ? 'round' : 'butt';
       ctx.globalAlpha = alpha * fall;
       ctx.strokeStyle = color.base;
-      ctx.lineWidth = width * (0.35 + 0.65 * fall);
+      ctx.lineWidth = width * (.35 + .65 * fall);
       ctx.stroke();
       if (c < 3) {
-        ctx.globalAlpha = alpha * fall * 0.6;
+        ctx.globalAlpha = alpha * fall * .6;
         ctx.strokeStyle = color.light;
-        ctx.lineWidth = width * 0.3;
+        ctx.lineWidth = width * .3;
         ctx.stroke();
       }
     }
@@ -314,8 +396,8 @@ const Vortex = (() => {
       const angle = Math.atan2(tip.y - from.y, tip.x - from.x);
       ctx.beginPath();
       ctx.moveTo(tip.x, tip.y);
-      ctx.lineTo(tip.x - size * Math.cos(angle - 0.4), tip.y - size * Math.sin(angle - 0.4));
-      ctx.lineTo(tip.x - size * Math.cos(angle + 0.4), tip.y - size * Math.sin(angle + 0.4));
+      ctx.lineTo(tip.x - size * Math.cos(angle - .4), tip.y - size * Math.sin(angle - .4));
+      ctx.lineTo(tip.x - size * Math.cos(angle + .4), tip.y - size * Math.sin(angle + .4));
       ctx.closePath();
       ctx.fill();
     };
@@ -323,7 +405,7 @@ const Vortex = (() => {
     const drawAxis = (view, color) => {
       const bottom = camera.point(0, -AXIS_LENGTH, 0, view, { contract: false });
       const top = camera.point(0, AXIS_LENGTH, 0, view, { contract: false });
-      ctx.globalAlpha = 0.9;
+      ctx.globalAlpha = .9;
       ctx.strokeStyle = color;
       ctx.fillStyle = color;
       ctx.lineWidth = 1.25;
@@ -345,7 +427,7 @@ const Vortex = (() => {
         ctx.save();
         ctx.setLineDash([2, 6]);
         ctx.lineCap = 'round';
-        ctx.globalAlpha = 0.9;
+        ctx.globalAlpha = .9;
         ctx.strokeStyle = color.light;
         ctx.lineWidth = 1.6;
         ctx.beginPath();
@@ -373,7 +455,7 @@ const Vortex = (() => {
     };
 
     const drawFlash = (view, strength, color) => {
-      const radius = view.unit * (0.15 + 1.2 * (1 - strength));
+      const radius = view.unit * (.15 + 1.2 * (1 - strength));
       const glow = ctx.createRadialGradient(view.cx, view.cy, 0, view.cx, view.cy, radius);
       glow.addColorStop(0, color);
       glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
@@ -404,12 +486,12 @@ const Vortex = (() => {
         if (!dimmed) return fog(depth);
         const s = toneOf(p, spinOf(p));
         const lit = band !== null && s >= band[0] && s <= band[1];
-        return fog(depth) * (lit ? 1 : 0.12);
+        return fog(depth) * (lit ? 1 : .12);
       };
       const drawEntry = (entry) => {
         const { p, index } = entry;
         camera.project(p, screen, view);
-        const pickable = p.len > 0 && trailAlpha(p) > 0.2;
+        const pickable = p.len > 0 && trailAlpha(p) > .2;
         heads[index * 2] = pickable ? screen[0] : NaN;
         heads[index * 2 + 1] = pickable ? screen[1] : NaN;
         const opacity = opacityOf(entry);
@@ -442,14 +524,14 @@ const Vortex = (() => {
 
   const COUNT = 560;
   const MAX_DPR = 2;
-  const SCALE = 0.33;
-  const HOME = Object.freeze({ yaw: 0.108, pitch: 0.207 });
-  const PITCH_LIMIT = [-1.25, 0.7];
-  const DRAG_SPEED = 0.008;
+  const SCALE = .33;
+  const HOME = Object.freeze({ yaw: .108, pitch: .207 });
+  const PITCH_LIMIT = [-1.25, .7];
+  const DRAG_SPEED = .008;
   const HOVER_RADIUS = 22;
   const TAP_RADIUS = 34;
-  const BAND = 0.09;
-  const TOOLTIP_REFRESH = 0.15;
+  const BAND = .09;
+  const TOOLTIP_REFRESH = .15;
   const {
     FLOW, COLLAPSE, createTracer, spawn, step, createCamera, createRenderer, pickNearest,
     phaseOf, relativeSpin, collapseScale, drawnScale, contraction, timeRate, rampGradient,
@@ -629,7 +711,7 @@ const Vortex = (() => {
 
   canvas.addEventListener('keydown', (event) => {
     const turns = {
-      ArrowLeft: [-0.12, 0], ArrowRight: [0.12, 0], ArrowUp: [0, 0.08], ArrowDown: [0, -0.08],
+      ArrowLeft: [-.12, 0], ArrowRight: [.12, 0], ArrowUp: [0, .08], ArrowDown: [0, -.08],
     };
     if (turns[event.key]) {
       event.preventDefault();
@@ -643,7 +725,7 @@ const Vortex = (() => {
     }
   });
 
-  const legend = { center: 0.5, pointer: false, focused: false };
+  const legend = { center: .5, pointer: false, focused: false };
 
   const showBand = () => {
     const active = legend.pointer || legend.focused;
@@ -687,7 +769,7 @@ const Vortex = (() => {
   ui.legend.addEventListener('focus', () => { legend.focused = true; showBand(); });
   ui.legend.addEventListener('blur', () => { legend.focused = false; showBand(); });
   ui.legend.addEventListener('keydown', (event) => {
-    const moves = { ArrowLeft: -0.05, ArrowDown: -0.05, ArrowRight: 0.05, ArrowUp: 0.05 };
+    const moves = { ArrowLeft: -.05, ArrowDown: -.05, ArrowRight: .05, ArrowUp: .05 };
     if (!moves[event.key]) return;
     event.preventDefault();
     legend.center = highlightBand(legend.center + moves[event.key], BAND)[0] + BAND;
@@ -724,7 +806,7 @@ const Vortex = (() => {
       const scale = collapseScale(run.t);
       state.radial = drawnScale(scale);
       state.rate = timeRate(scale);
-      const speed = scale > 0.01 ? `×${(1 / scale).toFixed(1)}` : '→ ∞';
+      const speed = scale > .01 ? `×${(1 / scale).toFixed(1)}` : '→ ∞';
       showBlowup(`core ${(scale * 100).toFixed(0)}% · speed ${speed}`, 1 - scale);
       if (run.t >= COLLAPSE.duration) {
         Object.assign(run, { t: 0, phase: 'restoring' });
@@ -750,7 +832,7 @@ const Vortex = (() => {
     ui.notes.forEach((note) => {
       const [x, y, z] = note.anchor;
       const s = camera.point(x, y, z, view);
-      const opacity = quiet ? (s.side >= -0.05 ? 1 : 0.35) : 0;
+      const opacity = quiet ? (s.side >= -.05 ? 1 : .35) : 0;
       note.el.style.transform = `translate(${s.x.toFixed(1)}px, ${s.y.toFixed(1)}px)`;
       if (opacity !== note.opacity) {
         note.el.style.opacity = String(opacity);
@@ -846,9 +928,9 @@ const Vortex = (() => {
   new ResizeObserver(() => { resize(); draw(); }).observe(canvas);
   const quiet = { record: false };
   tracers.forEach((p) => {
-    for (let i = Math.floor(Math.random() * 160); i > 0; i--) step(p, 0.05, quiet);
+    for (let i = Math.floor(Math.random() * 160); i > 0; i--) step(p, .05, quiet);
   });
-  for (let i = 0; i < 60; i++) advance(0.1);
+  for (let i = 0; i < 60; i++) advance(.1);
   for (let i = 0; i < FLOW.trail; i++) advance(1 / 60);
   draw();
   requestAnimationFrame(frame);
