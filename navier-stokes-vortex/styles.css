@@ -18,7 +18,11 @@ html, body {
 }
 
 body {
-  background: #000;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.5 ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", sans-serif;
+  display: grid;
+  place-items: center;
 }
 
 .viewer {
@@ -27,6 +31,8 @@ body {
   display: grid;
   justify-items: center;
   gap: 12px;
+  /* Orbiting can swing a note past the edge on small screens */
+  overflow-x: clip;
 }
 
 .stage {
@@ -50,9 +56,11 @@ canvas:active {
 }
 
 canvas:focus-visible {
-  outline: 2px solid var(--axis); outline-offset: -2px;
+  outline: 2px solid var(--axis);
+  outline-offset: -2px;
 }
 
+/* Notes are anchored to points in the flow, JS moves them every frame */
 .note {
   position: absolute;
   left: 0;
@@ -62,7 +70,7 @@ canvas:focus-visible {
   color: var(--ink);
   white-space: nowrap;
   text-shadow: 0 0 3px var(--bg), 0 0 6px var(--bg), 0 0 10px var(--bg);
-  transition: opacity 0.4s ease;
+  transition: opacity .4s ease;
 }
 
 .note::before {
@@ -75,10 +83,24 @@ canvas:focus-visible {
   border-radius: 50%;
   background: var(--ink);
 }
-.note-below { translate: -50% 10px; }
-.note-below::before { left: calc(50% - 3px); top: -13px; }
-.note-right { translate: 10px -50%; }
-.note-right::before { left: -13px; top: calc(50% - 3px); }
+
+.note-below {
+  translate: -50% 10px;
+}
+
+.note-below::before { 
+  left: calc(50% - 3px);
+  top: -13px;
+}
+
+.note-right {
+  translate: 10px -50%;
+}
+
+.note-right::before {
+  left: -13px;
+  top: calc(50% - 3px);
+}
 
 .tooltip {
   position: absolute;
@@ -101,6 +123,16 @@ canvas:focus-visible {
   transition: opacity .2s ease, visibility .2s;
 }
 
+@media (min-width: 1200px) {
+  .tooltip {
+    top: 50%;
+    right: auto;
+    left: calc(100% + 24px);
+    width: 240px;
+    translate: 0 -50%;
+  }
+}
+
 .tooltip.is-visible {
   opacity: 1;
   visibility: visible;
@@ -116,6 +148,17 @@ canvas:focus-visible {
   font-variant-numeric: tabular-nums;
 }
 
+.hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+  transition: opacity .6s ease;
+}
+
+.hint.is-done {
+  opacity: 0;
+}
 
 .controls {
   width: min(100%, 700px);
@@ -124,7 +167,13 @@ canvas:focus-visible {
   column-gap: 28px;
 }
 
-.legend, .speed, .singularity {
+@media (max-width: 640px) {
+  .controls { grid-template-columns: 1fr; row-gap: 14px; }
+}
+
+.legend,
+.speed,
+.singularity {
   display: grid;
   grid-template-rows: auto 30px auto;
   align-items: center;
@@ -132,12 +181,33 @@ canvas:focus-visible {
   font-size: 13px;
   color: var(--muted);
 }
-.legend { outline: none; }
 
-.control-title { display: flex; align-items: baseline; gap: 6px; }
-.control-note { font-size: 11px; opacity: 0.8; }
-.control-scale { display: flex; justify-content: space-between; font-size: 12px; }
-.speed-value { margin-left: auto; color: var(--ink); font-variant-numeric: tabular-nums; }
+.legend {
+  outline: none;
+}
+
+.control-title {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.control-note {
+  font-size: 11px;
+  opacity: .8;
+}
+
+.control-scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.speed-value {
+  margin-left: auto;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
 
 .legend-bar {
   position: relative;
@@ -147,7 +217,12 @@ canvas:focus-visible {
   cursor: crosshair;
   touch-action: none;
 }
-.legend:focus-visible .legend-bar { outline: 2px solid var(--axis); outline-offset: 3px; }
+
+.legend:focus-visible .legend-bar {
+  outline: 2px solid var(--axis);
+  outline-offset: 3px;
+}
+
 .legend-band {
   position: absolute;
   top: -4px;
@@ -156,6 +231,86 @@ canvas:focus-visible {
   border-radius: 6px;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.15s ease;
+  transition: opacity .15s ease;
 }
-.legend.is-active .legend-band { opacity: 1; }
+
+.legend.is-active .legend-band {
+  opacity: 1;
+}
+
+.speed input {
+  width: 100%;
+  margin: 0;
+  accent-color: var(--ink);
+  cursor: pointer;
+}
+
+.speed input:focus-visible {
+  outline: 2px solid var(--axis);
+  outline-offset: 3px;
+}
+
+.blowup {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 30px;
+  padding: 0 12px;
+  overflow: hidden;
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  background:
+    linear-gradient(var(--bg), var(--bg)) padding-box,
+    var(--ramp, linear-gradient(to right, #43d0dc, #f6ac54)) border-box;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: box-shadow .2s ease;
+}
+
+.blowup:hover {
+  box-shadow: 0 0 0 3px var(--panel-border);
+}
+
+.blowup:focus-visible {
+  outline: 2px solid var(--axis);
+  outline-offset: 3px;
+}
+
+.blowup[aria-busy="true"] {
+  cursor: progress;
+}
+
+.blowup-fill {
+  position: absolute;
+  inset: 0;
+  background: var(--ramp, linear-gradient(to right, #43d0dc, #f6ac54));
+  opacity: .22;
+  transform-origin: left;
+  transform: scaleX(0);
+}
+
+.blowup-icon {
+  position: relative;
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+.blowup > span:last-child {
+  position: relative;
+  white-space: nowrap;
+}
+
+.blowup-status {
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}

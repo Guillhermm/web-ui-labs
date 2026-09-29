@@ -5,13 +5,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="dark">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
   <title>The Navier-Stokes Vortex, by Guilherme Zeni</title>
   <link rel="stylesheet" href="styles.css">
   <script src="script.js" defer></script>
 </head>
 
 <body>
-  <div class="viewer">
+  <main class="viewer">
     <div class="stage">
       <canvas tabindex="0"
         aria-label="Animated vortex: streamlines spiral inward around a vertical axis and stretch along it, spinning faster near the core. Drag or use the arrow keys to orbit, R to reset the view."></canvas>
@@ -49,7 +51,7 @@
       </div>
     </div>
     <p class="hint"></p>
-  </div>
+  </main>
 </body>
 
 </html>
