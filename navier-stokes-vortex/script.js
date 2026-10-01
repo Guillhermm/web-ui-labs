@@ -347,6 +347,41 @@ const Vortex = (() => {
     return best;
   };
 
+  const QUALITY = Object.freeze([
+    Object.freeze({ maxDpr: 2, highlights: 3 }),
+    Object.freeze({ maxDpr: 1.5, highlights: 3 }),
+    Object.freeze({ maxDpr: 1, highlights: 0 }),
+  ]);
+
+  const GOVERNOR = Object.freeze({ budget: 1 / 45, span: 1, warmup: 1, stall: .25 });
+
+  const createGovernor = ({ budget, span, warmup, stall } = GOVERNOR) => {
+    let skip = warmup;
+    let total = 0;
+    let frames = 0;
+    const governor = {
+      tier: 0,
+      sample: (dt) => {
+        if (dt > stall) return false;
+        if (skip > 0) {
+          skip -= dt;
+          return false;
+        }
+        total += dt;
+        frames += 1;
+        if (total < span) return false;
+        const slow = total / frames > budget;
+        total = 0;
+        frames = 0;
+        if (!slow || governor.tier === QUALITY.length - 1) return false;
+        governor.tier += 1;
+        skip = warmup;
+        return true;
+      },
+    };
+    return governor;
+  };
+
   const CHUNKS = 6;
   const AXIS_LENGTH = 1.45;
 
@@ -358,7 +393,7 @@ const Vortex = (() => {
   };
   const fog = (depth) => .45 + .55 * clamp((depth + 1.3) / 2.6, 0, 1);
 
-  const drawTrail = (ctx, p, screen, unit, opacity, spin) => {
+  const drawTrail = (ctx, p, screen, unit, opacity, spin, highlights = 3) => {
     const n = p.len;
     const alpha = trailAlpha(p) * opacity;
     if (n < 3 || alpha <= .01) return;
@@ -376,7 +411,7 @@ const Vortex = (() => {
       ctx.strokeStyle = color.base;
       ctx.lineWidth = width * (.35 + .65 * fall);
       ctx.stroke();
-      if (c < 3) {
+      if (c < highlights) {
         ctx.globalAlpha = alpha * fall * .6;
         ctx.strokeStyle = color.light;
         ctx.lineWidth = width * .3;
@@ -470,7 +505,7 @@ const Vortex = (() => {
     };
 
     const render = (view, {
-      focus = -1, band = null, axisColor, flash = 0, flashColor,
+      focus = -1, band = null, axisColor, flash = 0, flashColor, highlights = 3,
     } = {}) => {
       ctx.clearRect(0, 0, view.width, view.height);
       ctx.lineJoin = 'round';
@@ -495,7 +530,7 @@ const Vortex = (() => {
         heads[index * 2] = pickable ? screen[0] : NaN;
         heads[index * 2 + 1] = pickable ? screen[1] : NaN;
         const opacity = opacityOf(entry);
-        if (opacity > 0) drawTrail(ctx, p, screen, view.unit, opacity, spinOf(p));
+        if (opacity > 0) drawTrail(ctx, p, screen, view.unit, opacity, spinOf(p), highlights);
       };
 
       order.forEach((entry) => { if (entry.side < 0) drawEntry(entry); });
@@ -514,7 +549,7 @@ const Vortex = (() => {
     phaseOf, createTracer, spawn, step, predictPath,
     COLLAPSE, collapseScale, drawnScale, axialScale, contraction, timeRate,
     STOPS, PALETTE, interpolate, speedFraction, colorAt, colorOf, layerTone, toneOf, highlightBand, formatPlayback, rampGradient,
-    createCamera, pickNearest, trailAlpha, fog, createRenderer,
+    createCamera, pickNearest, QUALITY, GOVERNOR, createGovernor, trailAlpha, fog, createRenderer,
   });
 })();
 
@@ -523,7 +558,6 @@ const Vortex = (() => {
   if (!canvas) return;
 
   const COUNT = 560;
-  const MAX_DPR = 2;
   const SCALE = .33;
   const HOME = Object.freeze({ yaw: .108, pitch: .207 });
   const PITCH_LIMIT = [-1.25, .7];
@@ -533,7 +567,7 @@ const Vortex = (() => {
   const BAND = .09;
   const TOOLTIP_REFRESH = .15;
   const {
-    FLOW, COLLAPSE, createTracer, spawn, step, createCamera, createRenderer, pickNearest,
+    FLOW, COLLAPSE, QUALITY, createTracer, spawn, step, createCamera, createRenderer, createGovernor, pickNearest,
     phaseOf, relativeSpin, collapseScale, drawnScale, contraction, timeRate, rampGradient,
     highlightBand, formatPlayback,
   } = Vortex;
@@ -564,6 +598,7 @@ const Vortex = (() => {
   const camera = createCamera(HOME);
   const tracers = Array.from({ length: COUNT }, () => spawn(createTracer()));
   const renderer = createRenderer(ctx, camera, tracers);
+  const governor = createGovernor();
   const media = {
     reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)'),
     coarse: window.matchMedia('(pointer: coarse)'),
@@ -589,7 +624,7 @@ const Vortex = (() => {
   };
 
   const resize = () => {
-    const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
+    const dpr = Math.min(window.devicePixelRatio || 1, QUALITY[governor.tier].maxDpr);
     const { width, height } = canvas.getBoundingClientRect();
     canvas.width = Math.round(width * dpr);
     canvas.height = Math.round(height * dpr);
@@ -895,13 +930,16 @@ const Vortex = (() => {
       axisColor: theme.axis,
       flash: state.flash,
       flashColor: theme.flash,
+      highlights: QUALITY[governor.tier].highlights,
     });
   };
 
   let last = performance.now();
   const frame = (now) => {
-    const dt = Math.min((now - last) / 1000, 1 / 30);
+    const interval = (now - last) / 1000;
+    const dt = Math.min(interval, 1 / 30);
     last = now;
+    if (governor.sample(interval)) resize();
     updateOrbit(dt);
     updateCollapse(dt);
     const playback = state.collapse ? Math.max(state.playback, 1) : state.playback;
