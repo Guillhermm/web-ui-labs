@@ -25,6 +25,10 @@ No frameworks. No build tools. No dependencies.
   An experimental generative art piece using the CSS Houdini Paint API to render an animated, interactive chromatic wheel, with a Canvas fallback for unsupported browsers.  
   **Path:** `houdini-chromatic-wheel/`
 
+- **The Navier-Stokes Vortex**
+  An animated, interactive illustration of the stretched vortex behind OpenAI's Navier–Stokes blowup result, drawn on a 2D canvas, with a playable finite-time singularity.  
+  **Path:** `navier-stokes-vortex/`
+
 - **Prime Binary Display**  
   A visual exploration of prime numbers represented in binary form.  
   **Path:** `prime-binary-display/`
