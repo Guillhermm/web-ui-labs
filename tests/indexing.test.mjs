@@ -26,6 +26,6 @@ test("hub is noindex but still followed", async () => {
 });
 
 test("sitemap lists exactly the indexed pages", async () => {
-	const locs = [...(await read("sitemap.xml")).matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+	const locs = [...(await read("navier-stokes-vortex/sitemap.xml")).matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
 	assert.deepEqual(locs, indexed.map((page) => `https://guillhermm.github.io/web-ui-labs/${page}/`));
 });

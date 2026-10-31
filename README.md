@@ -43,7 +43,7 @@ These projects are experimental by nature and are not intended as production-rea
 
 Only the Navier-Stokes Vortex is meant to appear in search. Every other page, the hub included, carries
 `<meta name="robots" content="noindex">` (the hub uses `noindex, follow` so its links are still crawled),
-and `sitemap.xml` lists the vortex alone. A new experiment gets `noindex` unless it should be found.
+and `navier-stokes-vortex/sitemap.xml` lists the vortex alone (it sits inside the vortex folder because the Search Console property is that folder). A new experiment gets `noindex` unless it should be found.
 `node --test tests/*.mjs` checks this.
 
 ## License
