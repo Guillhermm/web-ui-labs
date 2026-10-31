@@ -41,6 +41,11 @@ No frameworks. No build tools. No dependencies.
 
 These projects are experimental by nature and are not intended as production-ready components.
 
+Only the Navier-Stokes Vortex is meant to appear in search. Every other page, the hub included, carries
+`<meta name="robots" content="noindex">` (the hub uses `noindex, follow` so its links are still crawled),
+and `sitemap.xml` lists the vortex alone. A new experiment gets `noindex` unless it should be found.
+`node --test tests/*.mjs` checks this.
+
 ## License
 
 MIT License - See [LICENSE](LICENSE) file for details.
